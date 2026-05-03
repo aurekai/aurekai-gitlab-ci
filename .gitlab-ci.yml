@@ -1,0 +1,51 @@
+image: ghcr.io/aurekai/aurekai:0.8.0-alpha.4
+
+stages:
+  - validate
+  - audit
+  - pack
+  - gate
+
+doctor-deep:
+  stage: validate
+  script:
+    - akai doctor --deep --json
+
+manifest-verify:
+  stage: validate
+  script:
+    - akai verify --manifest artifact.json --json
+
+model-memory-pack:
+  stage: pack
+  script:
+    - akai pack --tag latest --json
+  artifacts:
+    paths:
+      - artifacts/
+
+sae-audit:
+  stage: audit
+  script:
+    - akai sae audit --model default --json
+
+semantic-cache-bench:
+  stage: audit
+  script:
+    - akai cache bench --queries 100 --json
+
+proof-bundle-export:
+  stage: audit
+  script:
+    - akai proof export --output proof-bundle.tar.gz
+  artifacts:
+    paths:
+      - proof-bundle.tar.gz
+
+release-gate:
+  stage: gate
+  script:
+    - akai release gate --version 0.8.0-alpha.4 --json
+  only:
+    - main
+    - tags
